@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Redirecting to Google Form...</title>
+</head>
+<body>
+  <h2>Getting your location...</h2>
+  <p>Please allow location access to continue.</p>
+  <script>
+    function redirectToForm(lat, lon) {
+      const baseFormURL = "https://docs.google.com/forms/d/e/1FAIpQLSezNxpwdT0OHOMp67-BHv9TPXkolPjmh9phylJyjQzDzTAE1A/viewform";
+      const locationEntryId = "entry.1546279607";
+      const locationValue = encodeURIComponent(lat.toFixed(6) + ", " + lon.toFixed(6));
+
+      const prefillURL = `${baseFormURL}?${locationEntryId}=${locationValue}`;
+      window.location.href = prefillURL;
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          redirectToForm(position.coords.latitude, position.coords.longitude);
+        },
+        (error) => {
+          alert("Location access denied or unavailable. You will be redirected to the form without location.");
+          window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSezNxpwdT0OHOMp67-BHv9TPXkolPjmh9phylJyjQzDzTAE1A/viewform";
+        },
+        {timeout: 10000}
+      );
+    } else {
+      alert("Geolocation is not supported by your browser. Redirecting to form.");
+      window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSezNxpwdT0OHOMp67-BHv9TPXkolPjmh9phylJyjQzDzTAE1A/viewform";
+    }
+  </script>
+</body>
+</html>
