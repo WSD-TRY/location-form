@@ -1,38 +1,62 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Redirecting to Google Form...</title>
+  <title>Loading Location...</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-  <h2>Getting your location...</h2>
-  <p>Please allow location access to continue.</p>
-  <script>
-    function redirectToForm(lat, lon) {
-      const baseFormURL = "https://docs.google.com/forms/d/e/1FAIpQLSezNxpwdT0OHOMp67-BHv9TPXkolPjmh9phylJyjQzDzTAE1A/viewform";
-      const locationEntryId = "entry.1546279607";
-      const locationValue = encodeURIComponent(lat.toFixed(6) + ", " + lon.toFixed(6));
+  <h2>Please allow location access...</h2>
+  <p id="status">Waiting for GPS...</p>
 
-      const prefillURL = `${baseFormURL}?${locationEntryId}=${locationValue}`;
-      window.location.href = prefillURL;
+  <script>
+    const status = document.getElementById("status");
+
+    // Google Form base link + replace this with your real "entry.XXXX" ID
+    const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSezNxpwdT0OHOMp67-BHv9TPXkolPjmh9phylJyjQzDzTAE1A/viewform";
+    const entryId = "entry.1546279607"; // <-- Update this if your field has a different entry ID
+
+    function redirectWithLocation(lat, lon) {
+      const url = `${formUrl}?${entryId}=${lat},${lon}`;
+      window.location.href = url;
     }
 
-    if (navigator.geolocation) {
+    function waitForLocation() {
+      if (!navigator.geolocation) {
+        status.textContent = "Geolocation is not supported by your browser.";
+        return;
+      }
+
+      status.textContent = "Waiting for your GPS location...";
+
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          redirectToForm(position.coords.latitude, position.coords.longitude);
+          const lat = position.coords.latitude.toFixed(6);
+          const lon = position.coords.longitude.toFixed(6);
+          status.textContent = `Location detected: ${lat}, ${lon}`;
+          redirectWithLocation(lat, lon);
         },
         (error) => {
-          alert("Location access denied or unavailable. You will be redirected to the form without location.");
-          window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSezNxpwdT0OHOMp67-BHv9TPXkolPjmh9phylJyjQzDzTAE1A/viewform";
+          if (error.code === error.PERMISSION_DENIED) {
+            status.textContent = "Please allow location access and refresh the page.";
+          } else if (error.code === error.POSITION_UNAVAILABLE) {
+            status.textContent = "Location unavailable. Please try again.";
+          } else if (error.code === error.TIMEOUT) {
+            status.textContent = "Request timed out. Please try again.";
+          } else {
+            status.textContent = "Unknown error. Please try again.";
+          }
         },
-        {timeout: 10000}
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
       );
-    } else {
-      alert("Geolocation is not supported by your browser. Redirecting to form.");
-      window.location.href = "https://docs.google.com/forms/d/e/1FAIpQLSezNxpwdT0OHOMp67-BHv9TPXkolPjmh9phylJyjQzDzTAE1A/viewform";
     }
+
+    waitForLocation();
   </script>
 </body>
 </html>
+
